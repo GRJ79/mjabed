@@ -43,6 +43,11 @@ self.addEventListener('fetch', e => {
         if (url.pathname === '/loading.html') return res;
         return loadingPage();
       } catch (err) {
+        // لا يوجد إنترنت أصلًا: افتح نسخة اللعبة المحفوظة (يشتغل وضع الكمبيوتر)
+        if (!navigator.onLine || err.message !== 'slow') {
+          const cached = await caches.match('/');
+          if (cached) return cached;
+        }
         return loadingPage();
       }
     })());
