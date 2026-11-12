@@ -30,7 +30,8 @@ const STATIC = {
   '/manifest.json': ['manifest.json', 'application/manifest+json; charset=utf-8'],
   '/sw.js':         ['sw.js',         'application/javascript; charset=utf-8'],
   '/icon-192.png':  ['icon-192.png',  'image/png'],
-  '/icon-512.png':  ['icon-512.png',  'image/png']
+  '/icon-512.png':  ['icon-512.png',  'image/png'],
+  '/.well-known/assetlinks.json': ['assetlinks.json', 'application/json; charset=utf-8']
 };
 
 function getRoom(code) {

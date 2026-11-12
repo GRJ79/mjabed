@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.onrender.mjabed.twa",
+        "sha256_cert_fingerprints": ["0D:54:1B:50:BB:F3:31:0E:03:D3:9F:0B:F6:E7:74:E0:AB:83:EF:8F:80:25:C8:A3:13:93:47:A0:A6:09:8B:39"]
+      }
+    }]
