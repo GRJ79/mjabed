@@ -1,7 +1,7 @@
 /* Service Worker — المجابيد
    - الصفحة الرئيسية: شبكة أولاً، وإذا السيرفر نايم/بطيء تظهر شاشة تحميل بدل صفحة رندر
    - باقي الملفات: شبكة أولاً ثم الكاش */
-const CACHE = 'majabeed-v2';
+const CACHE = 'majabeed-v3';
 const SHELL = ['/loading.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 const SKIP = ['/ev', '/send', '/chk', '/download', '/majabeed.apk'];
 
@@ -25,6 +25,17 @@ self.addEventListener('fetch', e => {
   const req = e.request;
   const url = new URL(req.url);
   if (req.method !== 'GET' || url.origin !== location.origin || SKIP.includes(url.pathname)) return;
+
+  // فتح اللعبة بعد ما تأكدت شاشة التحميل إن السيرفر صاحي: مرّرها مباشرة بدون أي فحص (يمنع التعليق)
+  if (req.mode === 'navigate' && url.searchParams.has('live')) {
+    e.respondWith(
+      fetch(req).then(res => {
+        if (res && res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put('/', copy)); }
+        return res;
+      }).catch(() => caches.match('/').then(r => r || loadingPage()))
+    );
+    return;
+  }
 
   // فتح اللعبة نفسها
   if (req.mode === 'navigate') {
