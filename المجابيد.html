@@ -1,5 +1,10 @@
 <!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d4af37">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="المجابيد">
+<link rel="apple-touch-icon" href="/icon-192.png">
 <title>المجابيد</title>
 <style>
 :root{--bg:#0b0b0b;--ink:#e8c55a;--gold:#d4af37;--W:min(100vw,calc(var(--H,100dvh)*.5625));--T:var(--W);--cw:clamp(30px,calc(var(--T)*.105),92px);--g:linear-gradient(135deg,#f6e27a,#c9a227 45%,#8c6d12 72%,#f3d96b);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -736,4 +741,6 @@ window.addEventListener('popstate',function(){TRAP=0;if(EXITING)return;try{
 }catch(e){}});
 
 ['click','touchend'].forEach(function(ev0){var f=function(){pushGameHistory();document.removeEventListener(ev0,f,true)};document.addEventListener(ev0,f,true)});
-</script></body></html>
+</script>
+<script>if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
+</body></html>
