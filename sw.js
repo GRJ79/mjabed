@@ -1,7 +1,7 @@
 /* Service Worker — المجابيد
    - الصفحة الرئيسية: شبكة أولاً، وإذا السيرفر نايم/بطيء تظهر شاشة تحميل بدل صفحة رندر
    - باقي الملفات: شبكة أولاً ثم الكاش */
-const CACHE = 'majabeed-v3';
+const CACHE = 'majabeed-v4';
 const SHELL = ['/loading.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 const SKIP = ['/ev', '/send', '/chk', '/download', '/majabeed.apk'];
 
