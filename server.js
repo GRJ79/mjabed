@@ -24,6 +24,15 @@ function gamePath() {
   return null;
 }
 
+
+/* ملفات الـ PWA الثابتة (manifest + service worker + الأيقونات) */
+const STATIC = {
+  '/manifest.json': ['manifest.json', 'application/manifest+json; charset=utf-8'],
+  '/sw.js':         ['sw.js',         'application/javascript; charset=utf-8'],
+  '/icon-192.png':  ['icon-192.png',  'image/png'],
+  '/icon-512.png':  ['icon-512.png',  'image/png']
+};
+
 function getRoom(code) {
   let r = rooms.get(code);
   if (!r) { r = { clients: new Map() }; rooms.set(code, r); }
@@ -42,6 +51,16 @@ const server = http.createServer((req, res) => {
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     return fs.createReadStream(g).pipe(res);
+  }
+
+  if (req.method === 'GET' && STATIC[u.pathname]) {
+    const f = path.join(__dirname, STATIC[u.pathname][0]);
+    if (!fs.existsSync(f)) { res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }); return res.end('not found'); }
+    const h = { 'Content-Type': STATIC[u.pathname][1] };
+    if (u.pathname === '/sw.js') { h['Cache-Control'] = 'no-cache'; h['Service-Worker-Allowed'] = '/'; }
+    else h['Cache-Control'] = 'public, max-age=3600';
+    res.writeHead(200, h);
+    return fs.createReadStream(f).pipe(res);
   }
 
   if (req.method === 'GET' && u.pathname === '/dev') {
