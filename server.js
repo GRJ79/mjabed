@@ -7,6 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const zlib = require('zlib');
 
 const PORT = +(process.env.PORT || 8080);
 const rooms = new Map();
@@ -65,8 +66,25 @@ small{display:block;margin-top:14px;opacity:.6}
 <span>2) افتح الملف بعد ما ينزل.</span>
 <span>3) لو سألك عن السماح بالتثبيت اضغط «إعدادات» ثم فعّل «السماح من هذا المصدر».</span>
 <span>4) اضغط «تثبيت»، ولو طلع تحذير اختر «تثبيت على أي حال».</span></div>
+<div class="st"><b>للآيفون 🍎</b>
+<span>1) افتح هذا الرابط في <b style="display:inline">Safari</b> (مو كروم).</span>
+<span>2) اضغط زر المشاركة ⬆️ ثم «إضافة إلى الشاشة الرئيسية».</span></div>
 <small>اللعبة تحتاج إنترنت. أول فتح قد يتأخر قليلًا.</small>
 </div></body></html>`;
+
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': '*' };
+let gz = null;
+function sendGame(req, res, g) {
+  const h = Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'X-Majabeed': '1', 'Cache-Control': 'no-cache', 'Vary': 'Accept-Encoding' }, CORS);
+  if (/\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+    const st = fs.statSync(g);
+    if (!gz || gz.p !== g || gz.m !== st.mtimeMs) gz = { p: g, m: st.mtimeMs, buf: zlib.gzipSync(fs.readFileSync(g), { level: 6 }) };
+    h['Content-Encoding'] = 'gzip'; h['Content-Length'] = gz.buf.length;
+    res.writeHead(200, h); return res.end(gz.buf);
+  }
+  res.writeHead(200, h);
+  return fs.createReadStream(g).pipe(res);
+}
 
 function getRoom(code) {
   let r = rooms.get(code);
@@ -77,6 +95,7 @@ function sendSSE(res, obj) { try { res.write('data: ' + JSON.stringify(obj) + '\
 
 const server = http.createServer((req, res) => {
   const u = url.parse(req.url, true);
+  if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
 
   if (req.method === 'GET' && (u.pathname === '/' || u.pathname === '/index.html' || u.pathname === '/game')) {
     const g = gamePath();
@@ -84,8 +103,7 @@ const server = http.createServer((req, res) => {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
       return res.end('game html file not found next to server.js');
     }
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'X-Majabeed': '1', 'Cache-Control': 'no-cache' });
-    return fs.createReadStream(g).pipe(res);
+    return sendGame(req, res, g);
   }
 
   if (req.method === 'GET' && u.pathname === '/download') {
@@ -123,7 +141,7 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && u.pathname === '/chk') {
-    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.writeHead(200, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, CORS));
     return res.end(rooms.has(u.query.room) ? 'ok' : 'no');
   }
 
@@ -131,19 +149,23 @@ const server = http.createServer((req, res) => {
     const code = String(u.query.room || '').trim();
     const id = String(u.query.id || 'x').trim();
     if (!code) { res.writeHead(400); return res.end(); }
-    res.writeHead(200, {
+    try { req.socket.setNoDelay(true); req.socket.setKeepAlive(true, 10000); req.socket.setTimeout(0); } catch (e) {}
+    res.writeHead(200, Object.assign({
       'Content-Type': 'text/event-stream; charset=utf-8',
       'Cache-Control': 'no-cache, no-transform',
       'Connection': 'keep-alive',
       'X-Accel-Buffering': 'no'
-    });
+    }, CORS));
     res.write('retry: 1500\n\n');
     const r = getRoom(code);
+    const old = r.clients.get(id);
     r.clients.set(id, res);
-    const ping = setInterval(() => { try { res.write(':ping\n\n'); } catch (e) {} }, 15000);
-    req.on('close', () => {
+    if (old && old !== res) { try { old.end(); } catch (e) {} }   /* نفس اللاعب رجع: نقفل الاتصال القديم بدون ما نعتبره طلع */
+    const ping = setInterval(() => { try { res.write(':ping\n\n'); } catch (e) {} }, 10000);
+    res.on('close', () => {
       clearInterval(ping);
-      if (r.clients.get(id) === res) r.clients.delete(id);
+      if (r.clients.get(id) !== res) return;                      /* اتصال قديم انستبدل: لا تبلّغ أحد إنه طلع */
+      r.clients.delete(id);
       const left = { m: 'ev', ev: 'left', id: id };
       r.clients.forEach(cr => sendSSE(cr, left));
       setTimeout(() => {
@@ -170,7 +192,7 @@ const server = http.createServer((req, res) => {
       r.clients.forEach((cr, cid) => {
         if (to === '*' ? cid !== from : cid === to) sendSSE(cr, m);
       });
-      res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.writeHead(200, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8' }, CORS));
       return res.end('ok');
     });
     return;
@@ -180,7 +202,13 @@ const server = http.createServer((req, res) => {
   res.end('not found');
 });
 
+/* مهم لـ Render: الوسيط عندهم يعيد استخدام الاتصالات، والقيمة الافتراضية (5 ثواني) تسبب قطع وأخطاء عشوائية */
+server.keepAliveTimeout = 120000;
+server.headersTimeout = 125000;
+server.requestTimeout = 0;
+
 server.listen(PORT, '0.0.0.0', () => {
+  if (!fs.existsSync(path.join(__dirname, 'majabeed.apk'))) console.log('تنبيه: majabeed.apk غير موجود، رابط /majabeed.apk ما راح يشتغل');
   console.log('Majabeed server running on http://0.0.0.0:' + PORT);
   console.log('Open http://<this-pc-ip>:' + PORT + '/ on the same Wi-Fi');
 });
