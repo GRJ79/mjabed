@@ -160,7 +160,7 @@ const server = http.createServer((req, res) => {
     const r = getRoom(code);
     const old = r.clients.get(id);
     r.clients.set(id, res);
-    if (old && old !== res) { try { old.end(); } catch (e) {} }   /* نفس اللاعب رجع: نقفل الاتصال القديم بدون ما نعتبره طلع */
+    if (old && old !== res) { try { old.write('retry: 600000\n\n'); old.end(); } catch (e) {} }   /* نفس اللاعب رجع: نقفل الاتصال القديم بدون ما نعتبره طلع */
     const ping = setInterval(() => { try { res.write(':ping\n\n'); } catch (e) {} }, 10000);
     res.on('close', () => {
       clearInterval(ping);
