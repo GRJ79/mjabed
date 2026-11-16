@@ -840,7 +840,7 @@ function showFinal(){var a=ts(0),b=ts(1),sc=[a,b],w=a>b?0:b>a?1:-1;
  document.getElementById('rs1').style.display='none';document.getElementById('rsk').style.display='none';e.style.display='flex';snd2('fan');if(w>=0)vib([60,40,120]);updPick()}
 function updPick(){var e=document.getElementById('resPick');if(e&&NET.pickres)e.textContent='توقعات الجمهور: '+NET.pickres.ok+'/'+NET.pickres.total}
 /* ===== v13: شبكة مستقرة + جمهور + استبدال + ترحيل المضيف ===== */
-var BASE=window.MJBASE!=null?window.MJBASE:((location.protocol=='https:'&&/onrender\.com$/.test(location.hostname))?'':'https://mjabed.onrender.com');
+var BASE=window.MJBASE!=null?window.MJBASE:((location.protocol=='https:'&&/onrender\.com$/.test(location.hostname))?'':'https://mjabed-1.onrender.com');
 NET.seen={};NET.lastMsg=Date.now();NET.rtt=0;NET.sq=0;
 function snd(m,to,ka){var u=BASE+'/send?room='+NET.room+'&id='+NET.id+'&to='+(to||'*'),b=JSON.stringify(m),o={method:'POST',body:b};if(ka)o.keepalive=true;fetch(u,o).catch(function(){if(m.m!='hb'&&m.m!='bk')setTimeout(function(){fetch(u,{method:'POST',body:b}).catch(function(){})},700)})}
 var BCT=0,BCL=0;
