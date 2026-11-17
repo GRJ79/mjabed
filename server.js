@@ -93,9 +93,34 @@ function getRoom(code) {
 }
 function sendSSE(res, obj) { try { res.write('data: ' + JSON.stringify(obj) + '\n\n'); } catch (e) {} }
 
+/* السيرفر القديم: نقفله ونعرض رسالة انتقال (يشتغل لو الدومين من القائمة، ويمكن تغييرها من متغير OLD_HOSTS في رندر) */
+const OLD_HOSTS = (process.env.OLD_HOSTS || 'mjabed.onrender.com').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+const NEW_SITE = process.env.NEW_SITE || 'https://mjabed-1.onrender.com';
+const NEW_APK_URL = process.env.NEW_APK_URL || '';
+const MOVED_PAGE = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0b0b"><title>المجابيد</title>
+<style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at center,#16130e,#030303 80%);color:#e8c55a;font-family:Tahoma,sans-serif;text-align:center}
+.b{max-width:420px}h1{margin:0 0 10px;font-size:26px}p{line-height:1.9;font-size:17px;margin:8px 0}
+a.btn{display:block;margin:12px 0;padding:15px;border-radius:14px;background:linear-gradient(135deg,#f6e27a,#c9a227 45%,#8c6d12 72%,#f3d96b);color:#1a1405;font-size:19px;font-weight:700;text-decoration:none}</style></head>
+<body><div class="b"><h1>🃏 المجابيد</h1><p>انتقلت اللعبة لسيرفر جديد أسرع، وهذا الرابط القديم تم إيقافه.</p>
+${NEW_APK_URL ? '<a class="btn" href="' + NEW_APK_URL + '">⬇ تحميل التطبيق الجديد (أندرويد)</a>' : ''}
+<a class="btn" href="${NEW_SITE}">🌐 فتح اللعبة من الرابط الجديد</a>
+<p style="font-size:14px;opacity:.8">للآيفون: افتح الرابط الجديد في Safari ثم «إضافة إلى الشاشة الرئيسية».</p></div></body></html>`;
+
 const server = http.createServer((req, res) => {
   const u = url.parse(req.url, true);
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); return res.end(); }
+
+  /* السيرفر القديم: ما فيه لعب. نرد بصفحة الانتقال فقط */
+  const hostName = String(req.headers['x-forwarded-host'] || req.headers.host || '').toLowerCase().split(':')[0];
+  if (OLD_HOSTS.indexOf(hostName) !== -1) {
+    const keep = u.pathname === '/loading.html' || u.pathname === '/sw.js' || u.pathname === '/manifest.json' || u.pathname === '/icon-192.png' || u.pathname === '/icon-512.png' || u.pathname === '/.well-known/assetlinks.json';
+    if (!keep) {
+      if (u.pathname === '/chk') { res.writeHead(200, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8' }, CORS)); return res.end('no'); }
+      if (u.pathname === '/ev' || u.pathname === '/send') { res.writeHead(410, CORS); return res.end('moved'); }
+      res.writeHead(200, Object.assign({ 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }, CORS));
+      return res.end(MOVED_PAGE);
+    }
+  }
 
   if (req.method === 'GET' && (u.pathname === '/' || u.pathname === '/index.html' || u.pathname === '/game')) {
     const g = gamePath();
