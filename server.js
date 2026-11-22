@@ -132,8 +132,44 @@ const server = http.createServer((req, res) => {
   }
 
   if (req.method === 'GET' && u.pathname === '/download') {
+    const f = path.join(__dirname, 'download.html');
+    const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+    const site = proto + '://' + String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+    if (fs.existsSync(f)) {
+      let apk = process.env.APK_URL || '';
+      if (!apk && fs.existsSync(path.join(__dirname, 'majabeed.apk'))) apk = '/majabeed.apk';
+      const html = fs.readFileSync(f, 'utf8')
+        .split('{{SITE}}').join(site)
+        .split('{{APK}}').join(apk || '#')
+        .split('{{VERSION}}').join(process.env.APP_VERSION || '1.1');
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+      return res.end(html);
+    }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
     return res.end(DOWNLOAD_PAGE);
+  }
+
+  /* صور صفحة التنزيل (ملفات dl-*.webp / jpg / png في المجلد الرئيسي) */
+  if (req.method === 'GET' && (/^\/dl-[a-z0-9-]+\.(webp|jpg|png)$/.test(u.pathname) || u.pathname === '/favicon.ico')) {
+    const name = u.pathname === '/favicon.ico' ? 'icon-192.png' : u.pathname.slice(1);
+    const f = path.join(__dirname, name);
+    if (!fs.existsSync(f)) { res.writeHead(404); return res.end('not found'); }
+    const ext = name.split('.').pop();
+    res.writeHead(200, { 'Content-Type': ext === 'webp' ? 'image/webp' : ext === 'jpg' ? 'image/jpeg' : 'image/png', 'Cache-Control': 'public, max-age=86400' });
+    return fs.createReadStream(f).pipe(res);
+  }
+
+  /* معلومات آخر إصدار (يفحصها التطبيق ليعرض رسالة تحديث). عدّل ملف version.json عند كل إصدار جديد */
+  if (req.method === 'GET' && u.pathname === '/version.json') {
+    let info = { build: 0 };
+    try { info = JSON.parse(fs.readFileSync(path.join(__dirname, 'version.json'), 'utf8')); } catch (e) {}
+    if (!info.apk) {
+      const proto = String(req.headers['x-forwarded-proto'] || 'https').split(',')[0].trim();
+      const site = proto + '://' + String(req.headers['x-forwarded-host'] || req.headers.host || '').split(',')[0].trim();
+      info.apk = process.env.APK_URL || (site + '/majabeed.apk');
+    }
+    res.writeHead(200, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, CORS));
+    return res.end(JSON.stringify(info));
   }
 
   if (req.method === 'GET' && u.pathname === '/majabeed.apk') {
@@ -142,6 +178,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, {
       'Content-Type': 'application/vnd.android.package-archive',
       'Content-Disposition': 'attachment; filename="majabeed.apk"',
+      'X-Content-Type-Options': 'nosniff',
+      'Access-Control-Allow-Origin': '*',
       'Content-Length': fs.statSync(f).size,
       'Cache-Control': 'no-cache'
     });
