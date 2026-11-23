@@ -86,6 +86,34 @@ function sendGame(req, res, g) {
   return fs.createReadStream(g).pipe(res);
 }
 
+/* ===== نظام البلاغات والاقتراحات (يرسل لتيليجرام) =====
+   متغيرات البيئة في رندر: BOT_TOKEN (توكن البوت) و CHAT_ID (رقم المحادثة). لا تكتبهم في الكود أبدًا. */
+const REPORT_HITS = new Map();   /* حماية من الإزعاج: 5 بلاغات لكل جهاز كل 10 دقائق */
+function reportAllowed(ip) {
+  const now = Date.now(), arr = (REPORT_HITS.get(ip) || []).filter(t => now - t < 600000);
+  if (arr.length >= 5) { REPORT_HITS.set(ip, arr); return false; }
+  arr.push(now); REPORT_HITS.set(ip, arr); return true;
+}
+setInterval(() => { const now = Date.now(); REPORT_HITS.forEach((v, k) => { if (!v.some(t => now - t < 600000)) REPORT_HITS.delete(k); }); }, 600000).unref();
+function tgSend(text, cb) {
+  const token = process.env.BOT_TOKEN, chat = process.env.CHAT_ID;
+  if (!token || !chat) return cb(new Error('not_configured'));
+  let done = false; const fin = (e) => { if (!done) { done = true; cb(e); } };
+  try {
+    const u = new URL((process.env.TELEGRAM_API || 'https://api.telegram.org') + '/bot' + token + '/sendMessage');
+    const body = JSON.stringify({ chat_id: chat, text: text, disable_web_page_preview: true });
+    const lib = u.protocol === 'http:' ? http : require('https');
+    const r = lib.request({ method: 'POST', hostname: u.hostname, port: u.port || undefined, path: u.pathname,
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) }, timeout: 10000 }, (resp) => {
+      resp.on('data', () => {}); resp.on('end', () => fin(resp.statusCode === 200 ? null : new Error('telegram_status_' + resp.statusCode)));
+    });
+    r.on('timeout', () => r.destroy(new Error('timeout')));
+    r.on('error', (e) => fin(new Error('telegram_send_failed')));
+    r.write(body); r.end();
+  } catch (e) { fin(new Error('telegram_send_failed')); }
+}
+const clip = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').trim().slice(0, n);
+
 function getRoom(code) {
   let r = rooms.get(code);
   if (!r) { r = { clients: new Map() }; rooms.set(code, r); }
@@ -234,6 +262,42 @@ const server = http.createServer((req, res) => {
       setTimeout(() => {
         if (rooms.get(code) === r && !r.clients.size) rooms.delete(code);
       }, 60000);
+    });
+    return;
+  }
+
+  /* استقبال البلاغات والاقتراحات من اللعبة */
+  if (u.pathname === '/api/report' && req.method === 'POST') {
+    const send = (code, obj) => { try { res.writeHead(code, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, CORS)); res.end(JSON.stringify(obj)); } catch (e) {} };
+    let body = '', big = false;
+    req.on('data', d => { body += d; if (body.length > 8000) { big = true; req.destroy(); } });
+    req.on('end', () => {
+      try {
+        if (big) return send(413, { ok: false, error: 'too_big' });
+        let m; try { m = JSON.parse(body || '{}'); } catch (e) { return send(400, { ok: false, error: 'bad_json' }); }
+        const ip = String(req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'x').split(',')[0].trim();
+        if (!reportAllowed(ip)) return send(429, { ok: false, error: 'rate_limited' });
+        const type = m.type === 'suggestion' ? 'suggestion' : (m.type === 'problem' ? 'problem' : '');
+        const message = clip(m.message, 1000);
+        if (!type) return send(400, { ok: false, error: 'bad_type' });
+        if (message.length < 3) return send(400, { ok: false, error: 'empty_message' });
+        const name = clip(m.playerName, 40) || 'غير معروف';
+        const lines = [
+          '📩 بلاغ جديد من لعبة المجابيد',
+          '',
+          '👤 اللاعب: ' + name,
+          '📌 النوع: ' + (type === 'problem' ? 'مشكلة 🐞' : 'اقتراح 💡'),
+          '📱 الإصدار: ' + (clip(m.ver, 20) || '-') + ' | ' + (clip(m.platform, 20) || '-'),
+          (clip(m.room, 10) ? '🔑 الغرفة: ' + clip(m.room, 10) : ''),
+          '',
+          '💬 الرسالة:',
+          message
+        ].filter((x, i, a) => !(x === '' && a[i - 1] === ''));
+        tgSend(lines.join('\n'), (err) => {
+          if (err) { console.error('report failed:', err.message); return send(err.message === 'not_configured' ? 503 : 502, { ok: false, error: err.message === 'not_configured' ? 'not_configured' : 'send_failed' }); }
+          send(200, { ok: true });
+        });
+      } catch (e) { console.error('report error:', e.message); send(500, { ok: false, error: 'server_error' }); }
     });
     return;
   }
