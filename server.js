@@ -231,6 +231,13 @@ const server = http.createServer((req, res) => {
     return fs.createReadStream(p).pipe(res);
   }
 
+  /* من المتصل بالغرفة الحين؟ (تستخدمه اللعبة لتعرف إن المضيف فصل فعلًا) */
+  if (req.method === 'GET' && u.pathname === '/who') {
+    const wr = rooms.get(String(u.query.room || '').trim());
+    res.writeHead(200, Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' }, CORS));
+    return res.end(JSON.stringify({ ok: true, ids: wr ? Array.from(wr.clients.keys()) : [] }));
+  }
+
   if (req.method === 'GET' && u.pathname === '/chk') {
     res.writeHead(200, Object.assign({ 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' }, CORS));
     return res.end(rooms.has(u.query.room) ? 'ok' : 'no');

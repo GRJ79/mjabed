@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0805">
+<title>المجابيد — لعبة ورق جماعية | تحميل</title>
+<meta name="description" content="العب المجابيد مع أهلك وأخوياك من أي مكان: غرف خاصة، لعب ضد الكمبيوتر، وبدون إعلانات مزعجة. حمّل اللعبة لأندرويد أو العب من المتصفح.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="المجابيد — لعبة ورق جماعية">
+<meta property="og:description" content="العب مع أخوياك أونلاين أو ضد الكمبيوتر. حمّلها الحين لأندرويد أو آيفون.">
+<meta property="og:image" content="https://grj79.github.io/mjabed/dl-og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;900&family=Aref+Ruqaa:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--g1:#ffe9a0;--g2:#e8c55a;--g3:#b8891c;--bg:#0b0805;--card:#15110a;--line:#d4af3755}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:#f4e7c3;font-family:'Cairo',Tahoma,sans-serif;line-height:1.8;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% -10%,#3a250a 0%,#120c05 45%,#050403 100%)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px}
+header{padding:calc(env(safe-area-inset-top,0px) + 14px) 0 0;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font:700 22px 'Aref Ruqaa',serif;color:var(--g1)}
+.brand img{width:38px;height:38px;border-radius:10px}
+.nav a{font-size:14px;color:var(--g2);margin-right:16px}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:34px 0 20px}
+.hero h1{font:900 clamp(34px,6vw,58px)/1.15 'Cairo',sans-serif;margin:0 0 8px;background:linear-gradient(180deg,#fff3c4,#e8b84a 60%,#a87413);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{font-size:clamp(16px,2.4vw,20px);color:#e9d9ad;margin:0 0 20px}
+.pill{display:inline-block;padding:4px 14px;border:1px solid var(--line);border-radius:30px;color:var(--g2);font-size:13px;margin-bottom:14px;background:#00000066}
+.hero img.logo{width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;border-radius:26px;border:1.5px solid var(--line);box-shadow:0 0 60px #d4af3733,0 20px 50px #000a}
+.btns{display:flex;flex-direction:column;gap:12px;max-width:430px}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:16px 20px;border-radius:16px;font:900 20px 'Cairo',sans-serif;background:linear-gradient(135deg,#f6e27a,#c9a227 45%,#8c6d12 72%,#f3d96b);color:#1a1405;box-shadow:0 8px 24px #d4af3733;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn.alt{background:#1b150b;color:var(--g1);border:1.5px solid var(--line);box-shadow:none}
+.btn span{line-height:1.35;text-align:center}.btn small{display:block;font:600 12px 'Cairo',Tahoma;opacity:.75;margin-top:2px}
+.btn .ic{font-size:26px}
+.note{font-size:13px;color:#b9a876;margin-top:10px}
+section{padding:34px 0}
+h2{font:900 clamp(24px,4vw,34px)/1.3 'Cairo';color:var(--g1);margin:0 0 6px;text-align:center}
+.sub{text-align:center;color:#b9a876;margin:0 0 22px}
+.shots{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;padding:6px 4px 18px;-webkit-overflow-scrolling:touch}
+.shots::-webkit-scrollbar{height:6px}.shots::-webkit-scrollbar-thumb{background:#d4af3766;border-radius:6px}
+.shot{flex:0 0 auto;width:min(230px,58vw);scroll-snap-align:center;border-radius:26px;padding:7px;background:linear-gradient(160deg,#3b2c10,#0e0a04);border:1.5px solid var(--line);box-shadow:0 14px 34px #000a}
+.shot img{width:100%;display:block;border-radius:20px}
+.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+.f{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;text-align:center}
+.f b{display:block;font-size:30px;margin-bottom:4px}
+.f h3{margin:0 0 4px;color:var(--g1);font-size:18px}.f p{margin:0;color:#cdbb8a;font-size:14px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
+.box.hl{border-color:#ffd45a;box-shadow:0 0 30px #d4af3744}
+.box h3{margin:0 0 10px;color:var(--g1);font-size:21px}
+ol{margin:0;padding:0 22px 0 0}li{margin:7px 0;color:#eadcb4}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin:10px 0}
+summary{cursor:pointer;font-weight:700;color:var(--g1)}details p{margin:8px 0 0;color:#d6c595}
+footer{text-align:center;color:#8f8260;font-size:13px;padding:30px 0 calc(env(safe-area-inset-bottom,0px) + 30px);border-top:1px solid #d4af3722;margin-top:20px;direction:ltr}
+.share{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.share button{font:700 14px 'Cairo';padding:10px 16px;border-radius:12px;border:1.5px solid var(--line);background:#1b150b;color:var(--g1);cursor:pointer}
+@media(max-width:760px){.hero{grid-template-columns:1fr;text-align:center}.hero .logo{order:-1;max-width:420px;margin:0 auto}.btns{margin:0 auto}.share{justify-content:center}}
+#wake{position:fixed;inset:0;z-index:99;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;background:radial-gradient(ellipse at center,#2a1c08,#050403 80%);text-align:center;padding:24px}
+#wake .sp{width:62px;height:62px;border-radius:50%;border:5px solid #d4af3744;border-top-color:#ffd45a;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#wake b{font:900 24px 'Cairo',Tahoma;color:#ffe9a0}#wake span{color:#d6c595;font-size:15px;max-width:340px}
+#wake button{margin-top:6px;font:700 15px 'Cairo',Tahoma;padding:10px 20px;border-radius:12px;border:1.5px solid var(--line);background:#1b150b;color:var(--g1);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <header>
+  <div class="brand"><img src="dl-icon.webp" alt=""> المجابيد</div>
+  <nav class="nav"><a href="#shots">الصور</a><a href="#install">التثبيت</a><a href="#faq">أسئلة</a></nav>
+ </header>
+
+ <div class="hero">
+  <div>
+   <span class="pill">لعبة ورق جماعية 🃏 النسخة 1.1</span>
+   <h1>المجابيد<br>تجمعنا على الورق</h1>
+   <p>العب مع أخوياك وأهلك أونلاين في غرف خاصة، أو تحدّى الكمبيوتر بمستويات صعوبة مختلفة. بدون تسجيل وبدون إعلانات مزعجة.</p>
+   <div class="btns" id="btns">
+    <a class="btn" id="bAndroid" href="majabeed.apk" download="majabeed.apk"><span class="ic">🤖</span><span>تحميل لأندرويد<small>ملف APK مجاني</small></span></a>
+    <a class="btn alt" id="bIos" href="#install"><span class="ic">🍎</span><span>للآيفون<small>تثبيت من المتصفح بدون متجر</small></span></a>
+    <a class="btn alt" id="bPlay" href="#" onclick="return playNow(event)"><span class="ic">🌐</span><span>العب الحين من المتصفح<small>بدون تحميل</small></span></a>
+   </div>
+   <div class="note" id="apkNote"></div><div class="note" id="srvChip">🟡 جاري تشغيل السيرفر…</div>
+   <div class="share"><button id="shareBtn">📤 شارك الرابط مع أخوياك</button><button id="copyBtn">🔗 نسخ الرابط</button></div>
+  </div>
+  <img class="logo" src="dl-icon.webp" alt="المجابيد" width="640" height="640">
+ </div>
+
+ <section id="shots">
+  <h2>شوف اللعبة</h2><p class="sub">اسحب لليسار لمشاهدة المزيد</p>
+  <div class="shots">
+   <div class="shot"><img loading="lazy" src="dl-s1.webp" alt="القائمة الرئيسية"></div>
+   <div class="shot"><img loading="lazy" src="dl-s3.webp" alt="الطاولة"></div>
+   <div class="shot"><img loading="lazy" src="dl-s2.webp" alt="قائمة اللعب"></div>
+   <div class="shot"><img loading="lazy" src="dl-s4.webp" alt="حساب النقاط"></div>
+   <div class="shot"><img loading="lazy" src="dl-s5.webp" alt="النتيجة"></div>
+  </div>
+ </section>
+
+ <section>
+  <h2>ليش المجابيد؟</h2><p class="sub">كل اللي تحتاجه لجلسة ورق حلوة</p>
+  <div class="feats">
+   <div class="f"><b>👥</b><h3>غرف خاصة</h3><p>أنشئ غرفة وأعطِ أخوياك الرمز، ويلعب معك أندرويد وآيفون مع بعض.</p></div>
+   <div class="f"><b>🤖</b><h3>ضد الكمبيوتر</h3><p>أربع مستويات صعوبة، وتلعب بدون نت.</p></div>
+   <div class="f"><b>🎨</b><h3>تغيّر شكل اللعبة</h3><p>طاولات وخلفيات وأشكال أزرار: أسود، ذهبي، وبيج.</p></div>
+   <div class="f"><b>⚡</b><h3>مقاطعة وحساب نقاط</h3><p>مقاطعات سريعة، وحساب النقاط بالورقة مع شاشة نتيجة حماسية.</p></div>
+  </div>
+ </section>
+
+ <section id="install">
+  <h2>طريقة التثبيت</h2><p class="sub">دقيقة وتكون جاهز</p>
+  <div class="steps">
+   <div class="box" id="boxAndroid">
+    <h3>🤖 أندرويد</h3>
+    <ol>
+     <li>اضغط <b>«تحميل لأندرويد»</b> فوق، وإذا طلع تنبيه اختر «تنزيل» أو «الاحتفاظ».</li>
+     <li>افتح الملف بعد ما ينزل.</li>
+     <li>لو سألك عن السماح بالتثبيت، اضغط «إعدادات» وفعّل <b>«السماح من هذا المصدر»</b>.</li>
+     <li>اضغط «تثبيت»، ولو طلع تحذير Play Protect اختر <b>«تثبيت على أي حال»</b>.</li>
+    </ol>
+   </div>
+   <div class="box" id="boxIos">
+    <h3>🍎 آيفون</h3>
+    <ol>
+     <li>افتح هذا الرابط في <b>Safari</b> (مو كروم).</li>
+     <li>اضغط زر المشاركة <b>⬆️</b> تحت.</li>
+     <li>اختر <b>«إضافة إلى الشاشة الرئيسية»</b> ثم «إضافة».</li>
+     <li>افتح اللعبة من أيقونتها، وتشتغل مثل أي تطبيق.</li>
+    </ol>
+   </div>
+  </div>
+ </section>
+
+ <section id="faq">
+  <h2>أسئلة سريعة</h2><p class="sub"> </p>
+  <details><summary>ليش يطلع تحذير وقت تثبيت أندرويد؟</summary><p>التحذير من أندرويد نفسه لأي تطبيق ينزل من خارج متجر قوقل بلاي، ومو معناه إن فيه فيروس. التطبيق بدون إعلانات وما يطلب صلاحيات حساسة.</p></details>
+  <details><summary>هل أحتاج نت؟</summary><p>اللعب ضد الكمبيوتر يشتغل بدون نت داخل التطبيق. الغرف مع أخوياك تحتاج نت.</p></details>
+  <details><summary>أول فتح تأخر شوي؟</summary><p>السيرفر ينام إذا ما أحد لعب فترة، وأول فتح قد ياخذ حتى دقيقة، وبعدها يمشي بسرعة.</p></details>
+  <details><summary>إذا واجهتني مشكلة أو عندي اقتراح؟</summary><p>من الإعدادات داخل اللعبة اضغط «اقتراحات / الإبلاغ عن مشاكل»، أو راسلنا على <b dir="ltr">mjabeed@hotmail.com</b></p></details>
+ </section>
+
+ <footer>Developed by Turki. All Rights Reserved © 2026</footer>
+</div>
+<div id="wake"><div class="sp"></div><b>جاري تشغيل اللعبة…</b><span id="wkt">السيرفر كان نايم وينشغل الحين. ممكن ياخذ حتى دقيقة، لا تقفل الصفحة.</span><button onclick="document.getElementById('wake').style.display='none'">إلغاء</button></div>
+<script>
+var GAME=window.MJGAME||'https://mjabed-1.onrender.com/',AWAKE=false;
+function pingSrv(){return fetch(GAME+'chk?room=ping',{cache:'no-store',mode:'cors'}).then(function(r){return r.text()}).then(function(t){return t=='ok'||t=='no'}).catch(function(){return false})}
+function chip(){var c=document.getElementById('srvChip');if(c)c.textContent=AWAKE?'🟢 السيرفر جاهز، اللعب فوري':'🟡 جاري تشغيل السيرفر… (ممكن ياخذ دقيقة)'}
+function warm(){pingSrv().then(function(ok){AWAKE=ok;chip()})}
+warm();setInterval(function(){if(!AWAKE)warm()},4000);
+function playNow(e){if(e)e.preventDefault();if(AWAKE){location.href=GAME;return false}
+ var w=document.getElementById('wake');w.style.display='flex';var t0=Date.now();
+ (function loop(){if(w.style.display!='flex')return;pingSrv().then(function(ok){if(ok){AWAKE=true;chip();location.href=GAME;return}var s=Math.round((Date.now()-t0)/1000);document.getElementById('wkt').textContent='السيرفر كان نايم وينشغل الحين… مضى '+s+' ثانية. لا تقفل الصفحة.';setTimeout(loop,2500)})})();return false}
+(function(){
+ var ua=navigator.userAgent||'',isIos=/iPhone|iPad|iPod/i.test(ua),isAnd=/Android/i.test(ua);
+ var apk=document.getElementById('bAndroid');
+ if(apk.getAttribute('href')==='#'||apk.getAttribute('href')===''){apk.style.opacity='.55';apk.onclick=function(e){e.preventDefault();alert('رابط التحميل يجي قريبًا')};document.getElementById('apkNote').textContent='رابط تحميل أندرويد غير جاهز حاليًا.'}
+ if(isIos){document.getElementById('boxIos').classList.add('hl');apk.style.display='none';document.getElementById('bIos').classList.remove('alt');document.getElementById('bIos').style.background='linear-gradient(135deg,#f6e27a,#c9a227 45%,#8c6d12 72%,#f3d96b)';document.getElementById('bIos').style.color='#1a1405'}
+ else if(isAnd){document.getElementById('boxAndroid').classList.add('hl');document.getElementById('bIos').style.display='none'}
+ var url=location.href.split('#')[0];
+ document.getElementById('copyBtn').onclick=function(){var b=this;(navigator.clipboard?navigator.clipboard.writeText(url):Promise.reject()).then(function(){b.textContent='✅ تم النسخ'}).catch(function(){prompt('انسخ الرابط:',url)})};
+ document.getElementById('shareBtn').onclick=function(){if(navigator.share)navigator.share({title:'المجابيد',text:'حمّل لعبة المجابيد وتعال العب معنا 🃏',url:url}).catch(function(){});else document.getElementById('copyBtn').click()};
+})();
+</script>
+</body>
+</html>

@@ -488,7 +488,7 @@ function addMem(id,nm,av,rank){
   if(S){var sp0=-1;for(var j0=0;j0<4;j0++)if(!NET.specs[j0]){sp0=j0;break}if(sp0<0){snd({m:'full'},id);return}NET.mem[id]={id:id,name:nm,av:av==null?0:av,rank:rank||0};NET.specs[sp0]=id;specStart(id);snd({m:'toast',t:nm+' دخل كجمهور'},'*');showToast(nm+' دخل كجمهور');setTimeout(bc,300);return}
   NET.mem[id]={id:id,name:nm,av:av==null?0:av,rank:rank||0};
   var placed=false;
-  for(var i=1;i<4;i++)if(!NET.slots[i]){NET.slots[i]=id;placed=true;break}
+  for(var i=1;i<(RULES.vs==1?2:4);i++)if(!NET.slots[i]){NET.slots[i]=id;placed=true;break}
   if(!placed)for(var j=0;j<4;j++)if(!NET.specs[j]){NET.specs[j]=id;placed=true;break}
   if(!placed){snd({m:'full'},id);return}
   bcastLobby(nm+' دخل الغرفة');
@@ -522,7 +522,7 @@ function rl(){
   document.getElementById('rmjoin').style.display=(NET.role=='g'&&!NET.joined)?'flex':'none';
   document.getElementById('rmlobby').style.display=(NET.role=='g'&&!NET.joined)?'none':'block';
   var seats=document.getElementById('rmseats'),specs=document.getElementById('rmspecs'),pos=['rs0','rs1','rs2','rs3'],spos=['js0','js1','js2','js3'],s='',i,id,m;
-  for(i=0;i<4;i++){id=NET.slots[i];m=id?NET.mem[id]:null;s+=`<div class="rmseat ${pos[i]}${m?' filled':''}" data-kind="p" data-slot="${i}"${m?` data-mid="${id}"`:''}>`;if(m)s+=`<div class="rmav" style="background-image:url('${avs(m.av)}')"></div><div class="rmnm">${esc(m.name)}${m.rank!=null?' · '+rankName(m.rank):''}${m.off?' ⏳':''}</div>${i==0?'<div class="rmlead">★</div>':''}`;s+='</div>'}
+  for(i=0;i<4;i++){if(RULES.vs==1&&i>1)continue;id=NET.slots[i];m=id?NET.mem[id]:null;s+=`<div class="rmseat ${pos[i]}${m?' filled':''}" data-kind="p" data-slot="${i}"${m?` data-mid="${id}"`:''}>`;if(m)s+=`<div class="rmav" style="background-image:url('${avs(m.av)}')"></div><div class="rmnm">${esc(m.name)}${m.rank!=null?' · '+rankName(m.rank):''}${m.off?' ⏳':''}</div>${i==0?'<div class="rmlead">★</div>':''}`;s+='</div>'}
   seats.innerHTML=s;s='';
   for(i=0;i<4;i++){id=NET.specs[i];m=id?NET.mem[id]:null;s+=`<div class="rmseat spec ${spos[i]}${m?' filled':''}" data-kind="s" data-slot="${i}"${m?` data-mid="${id}"`:''}>`;if(m)s+=`<div class="rmav" style="background-image:url('${avs(m.av)}')"></div><div class="rmnm">${esc(m.name)}${m.rank!=null?' · '+rankName(m.rank):''}</div>`;s+='</div>'}
   specs.innerHTML=s;
@@ -534,7 +534,7 @@ function rl(){
 function crt(code){if(needNet())return;
   var c=(code&&/^\d{4}$/.test(code))?code:String(1000+(Math.random()*9000|0));
   Object.assign(NET,{role:'h',room:c,g:null,gs:2,lv:NET.lv||1,gid:null,gn:'',ga:0,started:0,joined:1,spec:0,mem:{},slots:[null,null,null,null],specs:[null,null,null,null],hm:{},toast:'',hostId:null,pzFrom:null,tp:0,tn:RULES.tn.slice(),picks:{},recDone:0,pickDone:0,pickres:null,narr:0});
-  NET.rules={tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn.slice()};
+  NET.rules={vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn.slice()};
   NET.mem[NET.id]={id:NET.id,name:NM||'المضيف',av:AV,rank:STAT.rate};
   NET.slots[0]=NET.id;wtShow();
   fetch(BASE+'/chk?room='+c).then(function(r){return r.text()}).then(function(t){if(t=='ok'){wtHide();NET.role=0;document.getElementById('rm').style.display='none';alert('الرمز مستخدم — اختر رمزاً غيره');return}lastRoom(c);conn();rl();wtHide();}).catch(function(){wtHide();
@@ -563,23 +563,23 @@ function rcl(){resClose();if(NET.role=='h'&&S)snd({m:'hl'},'*',1);NET.lost=0;
 function rst(){
   if(NET.role!='h')return;
   LV=NET.lv;NM=NM||'المضيف';
-  if(NET.rules){RULES.tw=NET.rules.tw;RULES.H=NET.rules.H;RULES.J=NET.rules.J;RULES.mode=NET.rules.mode;RULES.tn=NET.rules.tn.slice()}
+  if(NET.rules){RULES.vs=NET.rules.vs||2;RULES.tw=NET.rules.tw;RULES.H=NET.rules.H;RULES.J=NET.rules.J;RULES.mode=NET.rules.mode;RULES.tn=NET.rules.tn.slice()}
   NS[0]=N[0]=NM||'أنت';AVO=[avs(AV),BA[1],BA[2],BA[3]];
   NET.hm={};NET.recDone=0;NET.pickDone=0;NET.pickres=null;NET.picks={};NET.narr=0;
   for(var i=1;i<4;i++){var id=NET.slots[i],m=id?NET.mem[id]:null;if(m){NS[i]=N[i]=m.name;AVO[i]=avs(m.av);NET.hm[i]=id}else{NS[i]=DNS[i];N[i]=DN[i];AVO[i]=BA[i]}}
   for(var k in NET.hm)sendStart(NET.hm[k],+k);
   var sps=NET.specs.filter(Boolean);
-  if(sps.length){var sp={m:'start',g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}};sps.forEach(function(id){snd(sp,id)})}
+  if(sps.length){var sp={m:'start',g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}};sps.forEach(function(id){snd(sp,id)})}
   document.getElementById('rm').style.display='none';go();
 }
 function bc0(){
   if(NET.role!='h'||!S)return;
   for(var k in NET.hm){
     var g=+k,L=function(a){return [0,1,2,3].map(function(l){return a[(l+g)%4]})},r=function(x){return (x-g+4)%4};
-    snd({m:'snap',n:NET.sq,pm:PLAYMS,pz:PZ?1:0,h:L(S.h).map(function(h,l){return l?h.map(function(){return 0}):h}),z:1,p:L(S.p).map(function(a){return a.map(ec)}),f:ecF(S.f),t:r(S.t),ph:S.ph,tl:S.tl,tw:S.tw,H:S.H,dn:S.dn,mode:S.mode,qt:S.qt,night:S.night,bonus:g%2?[S.bonus[1],S.bonus[0]]:S.bonus,big:S.big,best:S.best,ic:S.ic,gd:S.gd,tn:g%2?[S.tn[1],S.tn[0]]:S.tn,dsw:S.dsw,end:S.end,over:S.over,di:S.di,lp:r(S.lp),tv:S.tv,ch:S.ch,px:S.px||0,src:S.src?{k:S.src.k,x:S.src.k=='p'?r(S.src.x):S.src.x}:null,ann:S.ann},NET.hm[k]);
+    snd({m:'snap',n:NET.sq,pm:PLAYMS,pz:PZ?1:0,h:L(S.h).map(function(h,l){return l?h.map(function(){return 0}):h}),z:1,p:L(S.p).map(function(a){return a.map(ec)}),f:ecF(S.f),t:r(S.t),off:L(S.off||[0,0,0,0]),ph:S.ph,tl:S.tl,tw:S.tw,H:S.H,dn:S.dn,mode:S.mode,qt:S.qt,night:S.night,bonus:g%2?[S.bonus[1],S.bonus[0]]:S.bonus,big:S.big,best:S.best,ic:S.ic,gd:S.gd,tn:g%2?[S.tn[1],S.tn[0]]:S.tn,dsw:S.dsw,end:S.end,over:S.over,di:S.di,lp:r(S.lp),tv:S.tv,ch:S.ch,px:S.px||0,src:S.src?{k:S.src.k,x:S.src.k=='p'?r(S.src.x):S.src.x}:null,ann:S.ann},NET.hm[k]);
   }
   var sps=NET.specs.filter(Boolean);
-  if(sps.length){var p={m:'snap',n:NET.sq,pm:PLAYMS,pz:PZ?1:0,z:1,spec:1,h:S.h,p:S.p.map(function(a){return a.map(ec)}),f:ecF(S.f),t:S.t,ph:S.ph,tl:S.tl,tw:S.tw,H:S.H,dn:S.dn,mode:S.mode,qt:S.qt,night:S.night,bonus:S.bonus,big:S.big,best:S.best,ic:S.ic,gd:S.gd,tn:S.tn,dsw:S.dsw,end:S.end,over:S.over,di:S.di,lp:S.lp,tv:S.tv,ch:S.ch,px:S.px||0,src:S.src,ann:S.ann};sps.forEach(function(id){snd(p,id)})}
+  if(sps.length){var p={m:'snap',n:NET.sq,pm:PLAYMS,pz:PZ?1:0,z:1,spec:1,h:S.h,p:S.p.map(function(a){return a.map(ec)}),f:ecF(S.f),t:S.t,off:S.off||[0,0,0,0],ph:S.ph,tl:S.tl,tw:S.tw,H:S.H,dn:S.dn,mode:S.mode,qt:S.qt,night:S.night,bonus:S.bonus,big:S.big,best:S.best,ic:S.ic,gd:S.gd,tn:S.tn,dsw:S.dsw,end:S.end,over:S.over,di:S.di,lp:S.lp,tv:S.tv,ch:S.ch,px:S.px||0,src:S.src,ann:S.ann};sps.forEach(function(id){snd(p,id)})}
 }
 function onm(m){
   if(onm0(m))return;
@@ -599,16 +599,16 @@ function onm(m){
     return;
   }
   if(NET.role=='g'){
-    if(m.ev=='left'){if(m.id==NET.hostId){var la=Date.now();NET.hostLeftAt=la;setTimeout(function(){if(NET.role=='g'&&NET.hostLeftAt==la&&(!NET.seen[NET.hostId]||NET.seen[NET.hostId]<la))hostLost()},9000)}return}
+    if(m.ev=='left'){if(m.id==NET.hostId){var la=Date.now();NET.hostLeftAt=la;HD.chk=0;setTimeout(hostWatch,500)}return}
     if(m.m=='full'){showToast('الغرفة ممتلئة');return}
     if(m.m=='toast'){showToast(m.t);return}
     if(m.m=='rea'){showRea(m.k,m.nm);return}
-    if(m.m=='lobby'&&!NET.started){NET.hostId=m.from;NET.mem=m.mem||{};NET.slots=m.slots||[null,null,null,null];NET.specs=m.specs||[null,null,null,null];NET.lv=m.lv||1;if(m.rules){RULES.tw=m.rules.tw;RULES.H=m.rules.H;RULES.J=m.rules.J;RULES.mode=m.rules.mode;RULES.tn=m.rules.tn||RULES.tn}if(m.tn)RULES.tn=m.tn;document.getElementById('rmjoin').style.display='none';document.getElementById('rmlobby').style.display='block';rl();if(m.msg)showToast(m.msg);return}
-    if(m.m=='start'){if(m.rj&&NET.started&&Date.now()-(NET.sa||0)<4000)return;NET.sa=Date.now();resClose();PLAYMS=0;NET.hostId=m.from;NET.seen[m.from]=Date.now();NET.lsq=null;NET.lost=0;try{au();ld()}catch(e){}pushGameHistory();NET.g=m.g;NET.spec=m.spec?1:0;NET.started=1;NET.hm={};AVO=m.av;if(m.rules){RULES.tw=m.rules.tw;RULES.H=m.rules.H;RULES.J=m.rules.J;RULES.mode=m.rules.mode;RULES.tn=m.rules.tn||RULES.tn}NET.recDone=0;NET.pickDone=0;NET.pickres=null;m.ns.forEach(function(x,i){NS[i]=x});m.n.forEach(function(x,i){N[i]=x});document.getElementById('rm').style.display='none';document.body.classList.add('ing');load(m.rj?1.2:7+Math.random()*3,function(){document.getElementById('st').style.display='none'});return}
+    if(m.m=='lobby'&&!NET.started){NET.hostId=m.from;NET.mem=m.mem||{};NET.slots=m.slots||[null,null,null,null];NET.specs=m.specs||[null,null,null,null];NET.lv=m.lv||1;if(m.rules){RULES.tw=m.rules.tw;RULES.H=m.rules.H;RULES.J=m.rules.J;RULES.mode=m.rules.mode;RULES.vs=m.rules.vs||2;RULES.tn=m.rules.tn||RULES.tn}if(m.tn)RULES.tn=m.tn;document.getElementById('rmjoin').style.display='none';document.getElementById('rmlobby').style.display='block';rl();if(m.msg)showToast(m.msg);return}
+    if(m.m=='start'){if(m.rj&&NET.started&&Date.now()-(NET.sa||0)<4000&&m.g===NET.g&&!!m.spec===!!NET.spec)return;NET.sa=Date.now();resClose();PLAYMS=0;NET.hostId=m.from;NET.seen[m.from]=Date.now();NET.lsq=null;NET.lost=0;try{au();ld()}catch(e){}pushGameHistory();NET.g=m.g;NET.spec=m.spec?1:0;NET.started=1;NET.hm={};AVO=m.av;if(m.rules){RULES.tw=m.rules.tw;RULES.H=m.rules.H;RULES.J=m.rules.J;RULES.mode=m.rules.mode;RULES.vs=m.rules.vs||2;RULES.tn=m.rules.tn||RULES.tn}NET.recDone=0;NET.pickDone=0;NET.pickres=null;m.ns.forEach(function(x,i){NS[i]=x});m.n.forEach(function(x,i){N[i]=x});document.getElementById('rm').style.display='none';document.body.classList.add('ing');load(m.rj?1.2:7+Math.random()*3,function(){document.getElementById('st').style.display='none'});return}
     if(!NET.started)return;
     if(m.m=='rematch'){resClose();PLAYMS=0;NET.recDone=0;NET.pickDone=0;NET.pickres=null;S=null;document.getElementById('app').innerHTML='';return}
     if(m.m=='picks'){NET.pickres={ok:m.ok,total:m.total};render();return}
-    if(m.m=='snap'){if(m.n!=null&&NET.lsq!=null&&m.n<NET.lsq)return;NET.lsq=m.n;if(m.pm!=null)PLAYMS=m.pm;if(m.pz!=null&&!!m.pz!=!!PZ)pzv(m.pz?1:0);var o=S;S={h:m.h,p:m.z?m.p.map(function(a){return a.map(dc)}):m.p,f:m.z?decF(m.f):m.f,t:m.t,ph:m.ph,tl:m.tl,tw:m.tw||7,H:m.H||7,dn:m.dn||324,mode:m.mode||0,qt:m.qt||0,night:m.night||0,bonus:m.bonus||[0,0],big:m.big||0,best:m.best||0,ic:m.ic||0,gd:m.gd||[0,0,0,0],tn:m.tn||RULES.tn,dsw:m.dsw||0,end:m.end,over:m.over,di:m.di,lp:m.lp,tv:m.tv,ch:m.ch,px:m.px||0,src:m.src,ann:m.ann,an:0,sn:o?o.sn:new Set(),sel:(o&&o.t==m.t&&((m.ph=='p'&&m.t==0)||(m.ph=='w'&&m.t!=0))&&o.sel<m.h[0].length)?o.sel:-1,wn:0,fp:{}};render()}
+    if(m.m=='snap'){if(m.n!=null&&NET.lsq!=null&&m.n<NET.lsq)return;NET.lsq=m.n;if(m.pm!=null)PLAYMS=m.pm;if(m.pz!=null&&!!m.pz!=!!PZ)pzv(m.pz?1:0);var o=S;S={h:m.h,p:m.z?m.p.map(function(a){return a.map(dc)}):m.p,f:m.z?decF(m.f):m.f,off:m.off||[0,0,0,0],t:m.t,ph:m.ph,tl:m.tl,tw:m.tw||7,H:m.H||7,dn:m.dn||324,mode:m.mode||0,qt:m.qt||0,night:m.night||0,bonus:m.bonus||[0,0],big:m.big||0,best:m.best||0,ic:m.ic||0,gd:m.gd||[0,0,0,0],tn:m.tn||RULES.tn,dsw:m.dsw||0,end:m.end,over:m.over,di:m.di,lp:m.lp,tv:m.tv,ch:m.ch,px:m.px||0,src:m.src,ann:m.ann,an:0,sn:o?o.sn:new Set(),sel:(o&&o.t==m.t&&((m.ph=='p'&&m.t==0)||(m.ph=='w'&&m.t!=0))&&o.sel<m.h[0].length)?o.sel:-1,wn:0,fp:{}};render()}
     else if(m.m=='ev'){if(m.k=='say')say(m.a);else if(m.k=='jfx')jfx();else if(m.k=='vib')vib(m.a);else if(m.k=='dsm')dsm();else if(m.k=='sf'){if(NET.lsf&&NET.lsf[m.a]&&Date.now()-NET.lsf[m.a]<2500)NET.lsf[m.a]=0;else sf(m.a)}else if(m.k=='tl'&&S){S.tl=m.a;var c=document.getElementById('cnt');if(c)c.textContent=Math.ceil(S.tl);var b=document.getElementById('pb');if(b)b.style.width=S.tl/(S.tw||7)*100+'%';var rr=document.getElementById('rg'+S.t);if(rr)rr.setAttribute('stroke-dashoffset',(289*(1-Math.max(0,Math.min(1,S.tl/(S.tw||7))))).toFixed(1));var aw=document.querySelector('.avw.act');if(aw)aw.classList.toggle('low',S.tl<=2)}else if(m.k=='qt'&&S){S.qt=m.a;var q=document.getElementById('qt');if(q)q.textContent=fmt(m.a)}else if(m.k=='fly'){var g0=(NET.spec||NET.g==null||NET.g<0)?0:NET.g;fly((m.a.p-g0+4)%4,m.a.n,1)}else if(m.k=='night'){showNight();if(S)S.night=1}else if(m.k=='rea'){showRea(m.a.k,m.a.nm)}}
     else if(m.m=='pzs'){pzv(m.v)}
     else if(m.m=='pza'){if(m.v)pzv(1);else say('رفض اللاعب الإيقاف')}
@@ -688,7 +688,7 @@ let FQ=0;
 function fly(q,n,ns){if(n<1)return;const b=Math.max(0,FQ-Date.now());FQ=Date.now()+b+n*330+50;for(let i=0;i<n;i++)setTimeout(()=>{if(!ns)sf('draw');const a=document.querySelector('.dkc'),z=document.getElementById('pl'+q);if(!a||!z)return;const r=a.getBoundingClientRect(),t=z.getBoundingClientRect(),d=document.createElement('div');d.className='cd bk';d.style.cssText='position:fixed;margin:0;z-index:20;pointer-events:none;transition:transform 1s ease-in-out,opacity 1s;left:'+r.left+'px;top:'+r.top+'px';document.body.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.transform='translate('+(t.left+t.width/2-r.left-r.width/2)+'px,'+(t.top+t.height/2-r.top-r.height/2)+'px) scale(.55)';d.style.opacity='.25'}));setTimeout(()=>d.remove(),1100)},b+i*330+100)}
 function fs(){const e=document.documentElement,f=e.requestFullscreen||e.webkitRequestFullscreen;try{const r=f&&f.call(e);if(r&&r.catch)r.catch(()=>say('المتصفح منع ملء الشاشة هنا. افتح الرابط بصفحة مستقلة'));else if(!f)say('جهازك ما يدعم ملء الشاشة من هنا')}catch(x){say('المتصفح منع ملء الشاشة هنا')}}
 function init(){pushGameHistory();document.body.classList.add('ing');GEN++;PZ=0;resClose();idleOff();PLAYMS=0;if(S){clearInterval(S.iv);if(S.qiv)clearInterval(S.qiv)}clr();NET.recDone=0;NET.pickDone=0;NET.pickres=null;NET.picks={};NET.narr=0;clearSave();
-S={lv:LV,hs:Array.from({length:4},()=>Array(14).fill(0)),ps:0,fp:{},lp:0,src:null,cid:0,sn:new Set(),ann:'',an:0,dk:0,ds:0,di:0,h:[[],[],[],[]],p:[[],[],[],[]],f:{},t:0,ph:'p',end:0,over:0,sel:-1,wid:0,tk:0,px:0,wn:0,tl:0,big:0,best:0,ic:0,night:0,tw:RULES.tw,H:RULES.H,J:RULES.J,dn:0,bonus:[0,0],gd:[0,0,0,0],tn:RULES.tn.slice(),mode:RULES.mode,qt:0,qiv:null,rec:0,dsw:0,off:(!NET.role&&RULES.vs==1)?[0,0,1,1]:[0,0,0,0],sup:(!NET.role&&LV==3)?1:0};
+S={lv:LV,hs:Array.from({length:4},()=>Array(14).fill(0)),ps:0,fp:{},lp:0,src:null,cid:0,sn:new Set(),ann:'',an:0,dk:0,ds:0,di:0,h:[[],[],[],[]],p:[[],[],[],[]],f:{},t:0,ph:'p',end:0,over:0,sel:-1,wid:0,tk:0,px:0,wn:0,tl:0,big:0,best:0,ic:0,night:0,tw:RULES.tw,H:RULES.H,J:RULES.J,dn:0,bonus:[0,0],gd:[0,0,0,0],tn:RULES.tn.slice(),mode:RULES.mode,qt:0,qiv:null,rec:0,dsw:0,off:(RULES.vs==1&&(!NET.role||NET.role=='h'))?[0,0,1,1]:[0,0,0,0],sup:(!NET.role&&LV==3)?1:0};
 [S.dk,S.ds]=mk(S.J);S.dn=S.dk.length;for(let r=1;r<14;r++)S.f[r]=[{r,e:r,id:++S.cid,s:Math.random()*4|0}];const s=S.off[2]?(Math.random()*2|0):(Math.random()*4|0);const q=[];const H=S.H;for(let r=0;r<Math.ceil((H-1)/2);r++)for(let p=0;p<4;p++){const left=H-1-2*r;if(left>0&&!S.off[(s+1+p)%4])q.push([(s+1+p)%4,Math.min(2,left)])}q.push([s,1]);S.ph='d';S.t=s;render();const nx=i=>{if(i>=q.length){say((s?NS[s]+' يبدأ':'أنت تبدأ')+' اللعب');return begin()}draw(q[i][0],q[i][1]);render();gt(()=>nx(i+1),S.H>7?650:1000)};gt(()=>nx(0),700)}
 function ts(i){const a=i?[1,3]:[0,2];return a.reduce((s,q)=>s+sum(S.p[q]),0)+(S.bonus?S.bonus[i]:0)}
 function fmt(t){t=Math.max(0,t|0);return Math.floor(t/60)+':'+('0'+(t%60)).slice(-2)}
@@ -770,14 +770,14 @@ function modeBack(){ms(FLOW=='local'?1:3)}
 function setMode(m){RULES.mode=m;ms(7);renderRules()}
 function setRule(k,v){RULES[k]=v;renderRules()}
 function genCode(){var dc=document.getElementById('dcode');if(dc)dc.value=String(1000+Math.random()*9000|0)}
-function renderRules(){var vr=document.getElementById('vsRow');if(vr)vr.style.display=(FLOW=='local')?'block':'none';const rm=document.getElementById('rmode');if(rm)rm.textContent='الوضع: '+(RULES.mode?'⚡ سريع — أول فريق 300':'🃏 عادي');document.querySelectorAll('#m7 .bt[data-r]').forEach(function(b){b.classList.toggle('on',+b.dataset.v==RULES[b.dataset.r])});const r1=document.getElementById('rtn1'),r2=document.getElementById('rtn2');if(r1){r1.value=RULES.tn[0];r2.value=RULES.tn[1]}var cr=document.getElementById('dcodeRow');if(cr)cr.style.display=(FLOW=='host')?'block':'none';var dc=document.getElementById('dcode');if(dc&&!dc.value)dc.value=String(1000+Math.random()*9000|0)}
-function rulesGo(){const a=(document.getElementById('rtn1').value||'').trim().slice(0,12),b=(document.getElementById('rtn2').value||'').trim().slice(0,12);RULES.tn=[a||'الفريق الأول',b||'الفريق الثاني'];if(FLOW=='local'){ms(2)}else{var code=(document.getElementById('dcode').value||'').trim();if(!/^\d{4}$/.test(code)){alert('اكتب رمز الغرفة (4 أرقام)');return}NET.rules={tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn.slice()};crt(code)}}
+function renderRules(){var vr=document.getElementById('vsRow');if(vr)vr.style.display=(FLOW=='local'||FLOW=='host')?'block':'none';const rm=document.getElementById('rmode');if(rm)rm.textContent='الوضع: '+(RULES.mode?'⚡ سريع — أول فريق 300':'🃏 عادي');document.querySelectorAll('#m7 .bt[data-r]').forEach(function(b){b.classList.toggle('on',+b.dataset.v==RULES[b.dataset.r])});const r1=document.getElementById('rtn1'),r2=document.getElementById('rtn2');if(r1){r1.value=RULES.tn[0];r2.value=RULES.tn[1]}var cr=document.getElementById('dcodeRow');if(cr)cr.style.display=(FLOW=='host')?'block':'none';var dc=document.getElementById('dcode');if(dc&&!dc.value)dc.value=String(1000+Math.random()*9000|0)}
+function rulesGo(){const a=(document.getElementById('rtn1').value||'').trim().slice(0,12),b=(document.getElementById('rtn2').value||'').trim().slice(0,12);RULES.tn=[a||'الفريق الأول',b||'الفريق الثاني'];if(FLOW=='local'){ms(2)}else{var code=(document.getElementById('dcode').value||'').trim();if(!/^\d{4}$/.test(code)){alert('اكتب رمز الغرفة (4 أرقام)');return}NET.rules={vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn.slice()};crt(code)}}
 function editTeams(){if(NET.role!='h')return;var a=prompt('اسم الفريق الأول',RULES.tn[0]);if(a==null)return;var b=prompt('اسم الفريق الثاني',RULES.tn[1]);if(b==null)return;RULES.tn=[(a||'').trim().slice(0,12)||'الفريق الأول',(b||'').trim().slice(0,12)||'الفريق الثاني'];if(NET.rules)NET.rules.tn=RULES.tn.slice();bcastLobby('تم تحديث أسماء الفرق')}
 var TRAP=0;function pushGameHistory(){if(TRAP)return;try{history.pushState({mj:1},'','');TRAP=1}catch(e){}}
 function narrate(t){if(!NAR)return;try{if(!('speechSynthesis' in window))return;const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';u.rate=.95;u.pitch=.8;const v=(speechSynthesis.getVoices()||[]).find(function(x){return /^ar/i.test(x.lang)});if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
 function toggleNar(){NAR=!NAR;try{localStorage.setItem('mjnr',NAR?1:0)}catch(e){}syncNar()}
 function syncNar(){const b=document.getElementById('nrb');if(b)b.textContent=NAR?'إيقاف':'تشغيل'}
-function sendStart(id,g,rj){const L=function(a){return [0,1,2,3].map(function(l){return a[(l+g)%4]})};snd({m:'start',rj:rj?1:0,g:g,ns:L(NS),n:L(N),av:L(AVO),rules:{tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:g%2?[RULES.tn[1],RULES.tn[0]]:RULES.tn}},id)}
+function sendStart(id,g,rj){const L=function(a){return [0,1,2,3].map(function(l){return a[(l+g)%4]})};snd({m:'start',rj:rj?1:0,g:g,ns:L(NS),n:L(N),av:L(AVO),rules:{vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:g%2?[RULES.tn[1],RULES.tn[0]]:RULES.tn}},id)}
 function recGame(){if(!S||!S.over||NET.spec)return;if(NET.recDone)return;NET.recDone=1;const a=ts(0),b=ts(1);STAT.gp++;if(a>b){STAT.w++;STAT.rate+=S.mode?12:20}else if(a<b){STAT.l++;const ri=rankIdx(STAT.rate);STAT.rate=Math.max(0,STAT.rate-(ri>=3?(S.mode?6:10):(S.mode?4:6)))}else STAT.t++;if(S.big>STAT.big)STAT.big=S.big;if(S.best>STAT.best)STAT.best=S.best;if(S.ic>STAT.ic)STAT.ic=S.ic;const cnt={};(S.p[0]||[]).concat(S.p[2]||[]).forEach(function(c){if(c.r)cnt[c.r]=(cnt[c.r]||0)+1});let best=0,bk=0;for(const k in cnt)if(cnt[k]>best){best=cnt[k];bk=+k}if(best>=3)STAT.fav=bk;STAT.hist.unshift({d:Date.now(),mode:S.mode?1:0,a:a,b:b,tn:(S.tn||[]).slice(),big:S.big});if(STAT.hist.length>20)STAT.hist.length=20;saveStat();renderStats();if(!NET.narr){NET.narr=1;narrate(a>b?('فاز '+S.tn[0]):a<b?('فاز '+S.tn[1]):'تعادل')}clearSave()}
 function renderStats(){const idx=rankIdx(STAT.rate),lo=RNK[idx],hi=RNK[idx+1]||RNK[idx]+400,pc=Math.max(0,Math.min(100,Math.round((STAT.rate-lo)/(hi-lo)*100))),wr=STAT.gp?Math.round(STAT.w/STAT.gp*100):0;const el=document.getElementById('strank');if(el)el.innerHTML='<div class="stbig">'+RNM[idx]+'</div><div class="stbar"><i style="width:'+pc+'%"></i></div><div class="stsub">'+STAT.rate+' نقطة رتبة · '+STAT.gp+' مباراة</div>';const b=document.getElementById('stbody');if(!b)return;const hist=(STAT.hist||[]).map(function(h){const d=new Date(h.d);return '<div class="hit"><span>'+d.toLocaleDateString('ar-SA')+' · '+(h.mode?'سريع':'عادي')+'</span><b>'+(h.a>h.b?'فوز':h.a<h.b?'خسارة':'تعادل')+' '+h.a+'-'+h.b+'</b></div>'}).join('')||'<div class="stempty">ما فيه مباريات بعد</div>';b.innerHTML='<div class="stgrid"><div>المباريات<b>'+STAT.gp+'</b></div><div>الفوز<b>'+STAT.w+'</b></div><div>الخسارة<b>'+STAT.l+'</b></div><div>نسبة الفوز<b>'+wr+'%</b></div><div>أكبر كومة<b>'+STAT.big+'</b></div><div>أفضل سلسلة<b>'+STAT.best+'</b></div><div>الرقم المفضل<b>'+(STAT.fav?RN[STAT.fav]:'-')+'</b></div></div><div class="sh">سجل المجالس</div><div class="sthist">'+hist+'</div>'}
 function stp(o){if(o)pushGameHistory();const e=document.getElementById('stp');if(e)e.style.display=o?'flex':'none';if(o)renderStats()}
@@ -889,7 +889,7 @@ function hostLost(){if(NET.lost||NET.role!='g')return;if(navigator.onLine===fals
 function pickBk(){for(var i=1;i<4;i++){var id=NET.slots[i];if(id&&NET.mem[id]&&!NET.mem[id].off&&NET.hm[i]==id)return{id:id,g:i}}return null}
 function bkTick(){if(NET.role!='h'||!S)return;var b=pickBk();NET.bkid=b?b.id:null;if(!b)return;var n=Date.now();if(n-(NET.bkAt||0)<4000)return;NET.bkAt=n;
  var so=Object.assign({},S,{sn:Array.from(S.sn),iv:null,qiv:null,tk:0});
- snd({m:'bk',d:{g:b.g,S:so,slots:NET.slots,specs:NET.specs,mem:NET.mem,hostId:NET.id,lv:NET.lv,rules:{tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn},sq:NET.sq,ep:NET.ep||0}},b.id)}
+ snd({m:'bk',d:{g:b.g,S:so,slots:NET.slots,specs:NET.specs,mem:NET.mem,hostId:NET.id,lv:NET.lv,rules:{vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn},sq:NET.sq,ep:NET.ep||0}},b.id)}
 function becomeHost(){var d=NET.bkd,g=d.g,L=function(a){return[0,1,2,3].map(function(l){return a[(l+g)%4]})},R=function(x){return(x-g+4)%4},so=d.S;
  so.sn=new Set(so.sn||[]);so.iv=null;so.qiv=null;so.tk=0;
  so.h=L(so.h);so.p=L(so.p);so.gd=L(so.gd||[0,0,0,0]);so.hs=L(so.hs);so.off=L(so.off||[0,0,0,0]);so.t=R(so.t);so.lp=R(so.lp);
@@ -899,18 +899,18 @@ function becomeHost(){var d=NET.bkd,g=d.g,L=function(a){return[0,1,2,3].map(func
  var slots=L(d.slots),mem=d.mem,old=d.hostId;
  if(mem[old])mem[old].off=1;
  NET.role='h';NET.hostId=null;NET.g=null;NET.spec=0;NET.mem=mem;NET.slots=slots;NET.specs=d.specs.slice();NET.hm={};NET.lost=0;NET.sq=(d.sq||0)+1000;NET.ep=(d.ep||0)+1;NET.lv=d.lv;LV=d.lv;
- RULES.tw=d.rules.tw;RULES.H=d.rules.H;RULES.J=d.rules.J;RULES.mode=d.rules.mode;RULES.tn=tn;NET.rules={tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:tn.slice()};NET.tn=tn.slice();
+ RULES.tw=d.rules.tw;RULES.H=d.rules.H;RULES.J=d.rules.J;RULES.mode=d.rules.mode;RULES.vs=d.rules.vs||2;RULES.tn=tn;NET.rules={tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:tn.slice()};NET.tn=tn.slice();
  NET.picks={};NET.recDone=0;NET.pickDone=0;NET.pickres=null;NET.bkd=null;NET.bkid=null;
  for(var l=0;l<4;l++){var id=slots[l],m=id?mem[id]:null;
   if(l==0){NS[0]=N[0]=m?m.name:(NM||'أنت');AVO=AVO||[];AVO[0]=avs(AV);continue}
   if(m){NS[l]=N[l]=m.name;AVO[l]=avs(m.av);if(m.off)S.gd[l]=1;else{S.gd[l]=0;NET.hm[l]=id}}else{NS[l]=DNS[l];N[l]=DN[l];AVO[l]=BA[l]}}
  render();
  for(var k in NET.hm)sendStart(NET.hm[k],+k,1);
- NET.specs.filter(Boolean).forEach(function(id){snd({m:'start',rj:1,g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}},id)});
+ NET.specs.filter(Boolean).forEach(function(id){snd({m:'start',rj:1,g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}},id)});
  snd({m:'toast',t:'تم نقل المضيف — '+NS[0]+' صار المضيف'},'*');
  if(S.ph=='w'&&S.src)win();else begin()}
 function sendNames(){if(NET.role!='h')return;for(var k in NET.hm){var g=+k,L=function(a){return[0,1,2,3].map(function(l){return a[(l+g)%4]})};snd({m:'names',ns:L(NS),n:L(N),av:L(AVO)},NET.hm[k])}NET.specs.filter(Boolean).forEach(function(id){snd({m:'names',ns:NS,n:N,av:AVO},id)})}
-function specStart(id){snd({m:'start',rj:1,g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}},id)}
+function specStart(id){snd({m:'start',rj:1,g:-1,spec:1,ns:NS,n:N,av:AVO,rules:{vs:RULES.vs,tw:RULES.tw,H:RULES.H,J:RULES.J,mode:RULES.mode,tn:RULES.tn}},id)}
 var SPN=-1;function spUI(){var b=document.getElementById('spb');if(!b)return;var n=NET.specs.filter(Boolean).length;if(n!=SPN){SPN=n;b.textContent='🎭 الجمهور ('+n+')'}}
 function spOpen(){var e=document.getElementById('spp');if(!e)return;var sp=NET.specs.filter(Boolean),seats=[1,2,3].filter(function(l){return !NET.hm[l]&&!(S&&S.off&&S.off[l])});
  var h='<div class="bx" style="max-width:92%;max-height:80%;overflow:auto"><b>🎭 الجمهور</b><br>';
@@ -991,7 +991,7 @@ function nbShow(t,btn){var e=document.getElementById('nb');if(!e){e=document.cre
 function nbHide(){var e=document.getElementById('nb');if(e)e.style.display='none'}
 function nbHide2(){var e=document.getElementById('nb');if(e&&e.style.display=='flex')nbHide();if(NET.frz)nofHide()}
 function nbLeave(){nbHide();nofHide();bk()}
-function netWatch(n){if(!NET.role||!NET.room)return;if(NET.role=='h'&&Object.keys(NET.mem).length<2)return;var g=n-NET.lastMsg;if(g>35000){nbHide();nofShow('ما رجع الاتصال',1)}else if(g>20000){nbHide();nofShow('الاتصال منقطع… جاري إعادة الاتصال')}else if(g>15000)nbShow('📶 الاتصال ضعيف… جاري إعادة الاتصال');else if(NET.frz&&navigator.onLine!==false&&NET.es&&NET.es.readyState==1&&Object.keys(NET.mem).length<2)nofHide()}
+function netWatch(n){if(!NET.role||!NET.room)return;if(NET.role=='g'&&HD.on)return;if(NET.role=='h'&&Object.keys(NET.mem).length<2)return;var g=n-NET.lastMsg;if(g>35000){nbHide();nofShow('ما رجع الاتصال',1)}else if(g>20000){nbHide();nofShow('الاتصال منقطع… جاري إعادة الاتصال')}else if(g>15000)nbShow('📶 الاتصال ضعيف… جاري إعادة الاتصال');else if(NET.frz&&navigator.onLine!==false&&NET.es&&NET.es.readyState==1&&Object.keys(NET.mem).length<2)nofHide()}
 function resyncNow(){if(!NET.role||!NET.room)return;reconn();setTimeout(function(){if(NET.role=='g')snd({m:'sync'},NET.hostId||'*')},900);setTimeout(function(){if(NET.role=='g')snd({m:'sync'},NET.hostId||'*')},3000)}
 window.addEventListener('offline',function(){if(NET.role&&NET.room){nbHide();nofShow('النت طافي')}});
 window.addEventListener('online',function(){if(NET.role&&NET.room){nofShow('رجع النت… جاري تحميل اللعبة');resyncNow()}});
@@ -1027,7 +1027,7 @@ function tblPrev(on){var st=document.getElementById('st'),app=document.getElemen
 function tblBtn(){var s=document.querySelector('#ax .sec');if(s&&!s.querySelector('.pvb'))s.insertAdjacentHTML('beforeend','<button class="bt pvb" onclick="tblPrev(1)">👁 معاينة الطاولة</button>')}
 try{ap()}catch(e){}
 /* ===== v24: فحص التحديثات ===== */
-var APP_BUILD=6,APP_VER='2.2';
+var APP_BUILD=7,APP_VER='2.3';
 (function(){var e=document.getElementById('verln');if(e)e.textContent='الإصدار '+APP_VER+' ('+APP_BUILD+')'})();
 function isNative(){try{return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform())}catch(e){return false}}
 function updModal(j,force){var e=document.getElementById('upm');if(!e){e=document.createElement('div');e.id='upm';e.className='ov';e.style.cssText='display:flex;z-index:64';document.body.appendChild(e)}
@@ -1039,7 +1039,7 @@ function checkUpdate(manual){if(!manual&&!isNative()&&!window.MJFORCEUPD)return;
  var ctl=new AbortController(),to=setTimeout(function(){ctl.abort()},7000);
  fetch(BASE+'/version.json?_='+Date.now(),{cache:'no-store',signal:ctl.signal}).then(function(r){return r.json()}).then(function(j){clearTimeout(to);
   var force=!!(j.min&&j.min>APP_BUILD);
-  if(!(j.build>APP_BUILD)){if(manual)showToast('أنت على آخر إصدار ✅');return}
+  if(!(j.build>APP_BUILD)){if(manual)infoModal('✅ اللعبة محدثة لآخر إصدار<br><b>'+APP_VER+' ('+APP_BUILD+')</b>');return}
   if(!force&&!manual){try{var d=JSON.parse(localStorage.getItem('mjupd')||'null');if(d&&d.b==j.build&&Date.now()-d.t<43200000)return}catch(x){}}
   if(!isNative()&&!window.MJFORCEUPD){if(manual)showToast('فيه نسخة أحدث، حدّث الصفحة');return}
   updModal(j,force)}).catch(function(){clearTimeout(to);if(manual)showToast('تعذر الاتصال بالسيرفر')})}
@@ -1062,11 +1062,36 @@ function rptSend(){var tx=document.getElementById('rtxt'),m=document.getElementB
   else m.textContent='تعذر الإرسال، حاول مرة ثانية'}).catch(function(){clearTimeout(to);b.disabled=false;m.textContent='تعذر الإرسال، تأكد من الإنترنت وحاول مرة ثانية'})}
 function skinNote(){var h=document.querySelectorAll('#ax .sec');for(var i=0;i<h.length;i++){var t=h[i].querySelector('.sh');if(t&&t.textContent.indexOf('شكل الأزرار')>=0&&!h[i].querySelector('.snote'))h[i].insertAdjacentHTML('beforeend','<div class="mnote snote" style="margin-top:8px">⚠️ قد تكون جودة الأزرار الذهبية والبيج أقل من الأصلية</div>')}}
 /* انقطاع النت: شاشة تمنع اللعب وتوقف اللعبة عند اللاعب */
-function nofShow(t,leave){var e=document.getElementById('nof');if(!e){e=document.createElement('div');e.id='nof';e.className='ov';e.style.cssText='display:flex;z-index:59';document.body.appendChild(e)}
- e.innerHTML='<div class="bx"><div style="font-size:38px">📶</div><b>'+t+'</b><div class="mnote" style="margin:8px 0">اللعبة موقفة عندك لين يرجع الاتصال</div>'+(leave?'<button class="bt" onclick="nbLeave()">اطلع من الغرفة</button>':'')+'</div>';e.style.display='flex';
- if(!NET.frz){NET.frz=1;NET.frzSet=!PZ;PZ=1}}
-function nofHide(){var e=document.getElementById('nof');if(e)e.style.display='none';if(NET.frz){NET.frz=0;if(NET.frzSet){PZ=0;NET.frzSet=0;if(NET.role=='h'&&S)bc()}}}
 try{ap()}catch(e){}
+/* ===== v26: انقطاع المضيف + شاشات النت + 1 ضد 1 بالغرف + رسالة التحديث ===== */
+var HDT=30,HD={on:0,t0:0,iv:0,chk:0},NFIV=0;
+function frzOn(){if(!NET.frz){NET.frz=1;NET.frzSet=!PZ;PZ=1}}
+function frzRelease(){var a=document.getElementById('nof'),b=document.getElementById('hdo');if((a&&a.style.display=='flex')||(b&&b.style.display=='flex'))return;if(NET.frz){NET.frz=0;if(NET.frzSet){PZ=0;NET.frzSet=0;if(NET.role=='h'&&S)bc()}}}
+function nofShow(t,leave){var e=document.getElementById('nof');if(!e){e=document.createElement('div');e.id='nof';e.className='ov';e.style.cssText='display:flex;z-index:59';document.body.appendChild(e)}
+ var host=NET.role=='h'&&S&&Object.keys(NET.mem).length>1,title=host?'النت فصل عندك':'شغّل النت عشان تقدر تلعب',sub=host?'تأكد من أن النت شغال وإلا راح يلعب عنك كمبيوتر':'اللعبة موقفة عندك لين يرجع الاتصال';
+ if(t&&t.indexOf('رجع')==0){title=t;sub='لحظات…'}
+ e.innerHTML='<div class="bx"><div style="font-size:38px">📶</div><b>'+title+'</b><div class="mnote" style="margin:8px 0">'+sub+'</div>'+(host?'<div class="mnote">الوقت المتبقي: <b id="nfn">'+HDT+'</b> ثانية</div>':'')+(leave?'<button class="bt" onclick="nbLeave()">اطلع من الغرفة</button>':'')+'</div>';e.style.display='flex';frzOn();
+ if(host){if(!NET.nofT0)NET.nofT0=Date.now();if(!NFIV)NFIV=setInterval(function(){var r=Math.max(0,HDT-Math.floor((Date.now()-NET.nofT0)/1000)),n=document.getElementById('nfn');if(n)n.textContent=r;if(r<=0&&n){n.parentNode.innerHTML='انتهى الوقت: لعب عنك كمبيوتر. أول ما يرجع النت ادخل من «الرجوع لآخر غرفة»'}},1000)}}
+function nofHide(){var e=document.getElementById('nof');if(e)e.style.display='none';NET.nofT0=0;if(NFIV){clearInterval(NFIV);NFIV=0}frzRelease()}
+/* المضيف فصل عن اللاعبين */
+function hdShow(msg,sub){var e=document.getElementById('hdo');if(!e){e=document.createElement('div');e.id='hdo';e.className='ov';e.style.cssText='display:flex;z-index:59';document.body.appendChild(e)}
+ e.innerHTML='<div class="bx"><div style="font-size:38px">🚫</div><b>'+msg+'</b><div class="mnote" style="margin:8px 0">'+sub+'</div><div class="mnote" id="hdl"></div></div>';e.style.display='flex';frzOn()}
+function hdStart(){if(HD.on)return;HD.on=1;HD.t0=Date.now();hdShow('النت فصل عن المضيف','ننتظر رجوعه… إذا ما رجع بيكمل كمبيوتر مكانه');HD.iv=setInterval(hdTick,500);hdTick()}
+function hdTick(){var r=Math.max(0,HDT-Math.floor((Date.now()-HD.t0)/1000)),l=document.getElementById('hdl');if(l&&!HD.exp)l.innerHTML='الوقت المتبقي: <b>'+r+'</b> ثانية';if(r<=0&&!HD.exp){HD.exp=1;hdExpire()}}
+function hdEnd(){if(!HD.on)return;HD.on=0;HD.exp=0;if(HD.iv){clearInterval(HD.iv);HD.iv=0}var e=document.getElementById('hdo');if(e)e.style.display='none';frzRelease()}
+function hdExpire(){var ok=NET.role=='g'&&!NET.spec&&NET.bkid==NET.id&&NET.bkd&&navigator.onLine!==false&&NET.es&&NET.es.readyState==1;
+ if(ok){NET.lost=1;hdEnd();becomeHost();return}
+ var l=document.getElementById('hdl');if(l)l.textContent='جاري نقل إدارة الغرفة…';
+ setTimeout(function(){if(HD.on&&NET.role=='g'){hdEnd();rcl();alert('المضيف ما رجع وما لقينا بديل. ارجع ادخل الغرفة من جديد.')}},60000)}
+function hostWatch(){if(NET.role!='g'||!NET.room||!NET.started||!NET.hostId)return;var n=Date.now(),hs=NET.seen[NET.hostId]||0;
+ if(n-hs<8000){if(HD.on)hdEnd();return}
+ if(NET.frz&&!HD.on)return;
+ if(n-hs>15000&&!HD.on){hdStart();return}
+ if(HD.chk&&n-HD.chk<3000)return;HD.chk=n;
+ fetch(BASE+'/who?room='+NET.room,{cache:'no-store'}).then(function(r){return r.json()}).then(function(j){if(j&&j.ids&&j.ids.indexOf(NET.hostId)<0)hdStart()}).catch(function(){if(!HD.on)nofShow('')})}
+setInterval(hostWatch,3000);
+/* رسالة التحديث */
+function infoModal(msg){var e=document.getElementById('inf');if(!e){e=document.createElement('div');e.id='inf';e.className='ov';e.style.cssText='display:flex;z-index:66';document.body.appendChild(e)}e.innerHTML='<div class="bx">'+msg+'<br><br><button class="bt" onclick="document.getElementById(\'inf\').style.display=\'none\'">تمام</button></div>';e.style.display='flex'}
 </script>
 <script>if("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");</script>
 </body></html>
